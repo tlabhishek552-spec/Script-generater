@@ -12,6 +12,9 @@ const scriptPreviewDiv = document.getElementById('scriptPreview');
 const savedScriptsListDiv = document.getElementById('savedScriptsList');
 const downloadPDFBtn = document.getElementById('downloadPDF');
 const resetFormBtn = document.getElementById('resetForm');
+const saveScriptBtn = document.getElementById('saveScriptBtn');
+const updateScriptBtn = document.getElementById('updateScriptBtn');
+const saveAndDownloadBtn = document.getElementById('saveAndDownload');
 
 // State variables
 let currentScript = {
@@ -33,6 +36,8 @@ generateCharacterFieldsBtn.addEventListener('click', generateCharacterFields);
 scriptForm.addEventListener('submit', saveScript);
 resetFormBtn.addEventListener('click', resetForm);
 downloadPDFBtn.addEventListener('click', downloadPDF);
+updateScriptBtn.addEventListener('click', updateScript);
+saveAndDownloadBtn.addEventListener('click', saveAndDownload);
 
 // Functions
 function generateCharacterFields() {
@@ -163,6 +168,13 @@ function updatePreview() {
         downloadPDFBtn.disabled = true;
     } else {
         downloadPDFBtn.disabled = false;
+        
+        // Show save and download button if editing existing script
+        if (currentScript.id) {
+            saveAndDownloadBtn.style.display = 'inline-block';
+        } else {
+            saveAndDownloadBtn.style.display = 'none';
+        }
     }
     
     scriptPreviewDiv.innerHTML = previewHTML;
@@ -236,6 +248,69 @@ function saveScript(e) {
     alert('Script saved successfully!');
 }
 
+function updateScript() {
+    // Get form data
+    const movieName = document.getElementById('movieName').value;
+    const scenario = document.getElementById('scenario').value;
+    const characterInputs = document.querySelectorAll('.character-name');
+    const dialogueEntries = document.querySelectorAll('.dialogue-entry');
+    
+    // Validate required fields
+    if (!movieName.trim() || !scenario.trim()) {
+        alert('Please fill in all required fields: Movie Name and Scenario');
+        return;
+    }
+    
+    // Collect characters
+    const characters = [];
+    characterInputs.forEach(input => {
+        if (input.value.trim()) {
+            characters.push(input.value.trim());
+        }
+    });
+    
+    // Collect dialogues
+    const dialogues = [];
+    dialogueEntries.forEach(entry => {
+        const characterName = entry.querySelector('.character-name').textContent.replace(':', '');
+        const dialogueText = entry.querySelector('.dialogue-text').value.trim();
+        
+        if (dialogueText) {
+            dialogues.push({
+                character: characterName,
+                text: dialogueText
+            });
+        }
+    });
+    
+    // Update script object
+    const script = {
+        id: currentScript.id,
+        movieName: movieName.trim(),
+        scenario: scenario.trim(),
+        characters: characters,
+        dialogues: dialogues,
+        lastModified: new Date().toISOString()
+    };
+    
+    // Update in localStorage
+    const index = savedScripts.findIndex(s => s.id === currentScript.id);
+    if (index !== -1) {
+        savedScripts[index] = script;
+        localStorage.setItem('movieScripts', JSON.stringify(savedScripts));
+        
+        alert('Script updated successfully!');
+        loadSavedScripts();
+    }
+}
+
+function saveAndDownload() {
+    updateScript();
+    setTimeout(() => {
+        downloadPDF();
+    }, 500);
+}
+
 function loadSavedScripts() {
     savedScriptsListDiv.innerHTML = '';
     
@@ -253,7 +328,9 @@ function loadSavedScripts() {
             <p class="mb-2 text-muted small">Last modified: ${new Date(script.lastModified).toLocaleString()}</p>
             <div class="action-buttons">
                 <button type="button" class="btn btn-sm btn-primary view-script" data-id="${script.id}">View/Edit</button>
+                <button type="button" class="btn btn-sm btn-warning edit-script" data-id="${script.id}">Edit Only</button>
                 <button type="button" class="btn btn-sm btn-danger delete-script" data-id="${script.id}">Delete</button>
+                <button type="button" class="btn btn-sm btn-success download-script" data-id="${script.id}">Download</button>
             </div>
         `;
         
@@ -268,6 +345,14 @@ function loadSavedScripts() {
         });
     });
     
+    // Add event listeners to edit only buttons
+    document.querySelectorAll('.edit-script').forEach(button => {
+        button.addEventListener('click', function() {
+            const scriptId = this.dataset.id;
+            loadScriptForEditing(scriptId, true);
+        });
+    });
+    
     // Add event listeners to delete buttons
     document.querySelectorAll('.delete-script').forEach(button => {
         button.addEventListener('click', function() {
@@ -275,9 +360,17 @@ function loadSavedScripts() {
             deleteScript(scriptId);
         });
     });
+    
+    // Add event listeners to download buttons
+    document.querySelectorAll('.download-script').forEach(button => {
+        button.addEventListener('click', function() {
+            const scriptId = this.dataset.id;
+            downloadSpecificScript(scriptId);
+        });
+    });
 }
 
-function loadScriptForEditing(scriptId) {
+function loadScriptForEditing(scriptId, editOnly = false) {
     const script = savedScripts.find(s => s.id === scriptId);
     if (!script) return;
     
@@ -339,6 +432,15 @@ function loadScriptForEditing(scriptId) {
         }
     });
     
+    // Update button states
+    if (editOnly) {
+        saveScriptBtn.style.display = 'none';
+        updateScriptBtn.style.display = 'inline-block';
+    } else {
+        saveScriptBtn.style.display = 'inline-block';
+        updateScriptBtn.style.display = 'none';
+    }
+    
     // Update preview
     updatePreview();
     
@@ -367,6 +469,9 @@ function resetForm() {
     dialogueSectionDiv.innerHTML = '';
     scriptPreviewDiv.innerHTML = '<p class="text-muted">Your script preview will appear here...</p>';
     downloadPDFBtn.disabled = true;
+    saveAndDownloadBtn.style.display = 'none';
+    saveScriptBtn.style.display = 'inline-block';
+    updateScriptBtn.style.display = 'none';
     currentScript = {
         id: null,
         movieName: '',
@@ -432,43 +537,34 @@ function downloadPDF() {
         yPosition += 5;
     }
     
-    // Add dialogues
-    const hasDialogues = Array.from(dialogueEntries).some(entry => 
-        entry.querySelector('.dialogue-text').value.trim() !== ''
-    );
-    
-    if (hasDialogues) {
+        // Add dialogues
+    if (script.dialogues.length > 0) {
         doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
         doc.text('DIALOGUES', 20, yPosition);
         yPosition += 15;
         
-        dialogueEntries.forEach(entry => {
-            const characterName = entry.querySelector('.character-name').textContent.replace(':', '');
-            const dialogueText = entry.querySelector('.dialogue-text').value.trim();
-            
-            if (dialogueText) {
-                // Check if we need a new page
-                if (yPosition > 250) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
-                
-                // Add character name
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text(`${characterName.toUpperCase()}:`, 20, yPosition);
-                yPosition += 7;
-                
-                // Add dialogue text
-                doc.setFont(undefined, 'normal');
-                const dialogueLines = doc.splitTextToSize(dialogueText, 170);
-                doc.text(dialogueLines, 25, yPosition);
-                yPosition += dialogueLines.length * 7 + 10;
+        script.dialogues.forEach(dialogue => {
+            // Check if we need a new page
+            if (yPosition > 250) {
+                doc.addPage();
+                yPosition = 20;
             }
+            
+            // Add character name
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text(`${dialogue.character.toUpperCase()}:`, 20, yPosition);
+            yPosition += 7;
+            
+            // Add dialogue text
+            doc.setFont(undefined, 'normal');
+            const dialogueLines = doc.splitTextToSize(dialogue.text, 170);
+            doc.text(dialogueLines, 25, yPosition);
+            yPosition += dialogueLines.length * 7 + 10;
         });
     }
     
     // Save the PDF
-    doc.save(`${movieName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_script.pdf`);
+    doc.save(`${script.movieName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_script.pdf`);
 }
