@@ -1,0 +1,139 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+    margin-bottom: 20px;
+    transition: transform 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.character-btn {
+    margin: 5px;
+}
+
+.dialogue-entry {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-left: 3px solid #6a11cb;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.script-preview {
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    padding: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+}
+
+.character-name {
+    font-weight: bold;
+    color: #6a11cb;
+}
+
+.btn-primary {
+    background-color: #6a11cb;
+    border-color: #6a11cb;
+}
+
+.btn-primary:hover {
+    background-color: #5a0db8;
+    border-color: #5a0db8;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.script-item {
+    border-left: 4px solid #6a11cb;
+    padding-left: 15px;
+    margin-bottom: 15px;
+    background-color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-buttons {
+    margin-top: 10px;
+}
+
+.form-section {
+    margin-bottom: 30px;
+}
+
+.character-section {
+    margin-top: 20px;
+}
+
+.dialogue-text {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.script-preview h3 {
+    color: #6a11cb;
+    border-bottom: 2px solid #6a11cb;
+    padding-bottom: 10px;
+}
+
+.script-preview h5 {
+    color: #495057;
+    margin-top: 20px;
+}
+
+.script-preview p {
+    line-height: 1.6;
+}
+
+.script-preview ul {
+    padding-left: 20px;
+}
+
+.script-preview li {
+    margin-bottom: 5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header {
+        padding: 1.5rem 0;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    .character-btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+}
