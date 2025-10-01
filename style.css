@@ -68,6 +68,12 @@ body {
     border-color: #28a745;
 }
 
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
 .script-item {
     border-left: 4px solid #6a11cb;
     padding-left: 15px;
@@ -116,6 +122,14 @@ body {
 
 .script-preview li {
     margin-bottom: 5px;
+}
+
+.kannada-font {
+    font-family: 'Noto Sans Kannada', 'Tunga', 'Kedage', 'Mallige', sans-serif;
+}
+
+.language-selector {
+    margin-bottom: 15px;
 }
 
 /* Responsive adjustments */
